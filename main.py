@@ -1,29 +1,52 @@
+import asyncio
 import logging
-from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 import os
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram import F
+from aiogram.router import Router
 from dotenv import load_dotenv
 
 load_dotenv()
 
-API_TOKEN = os.getenv("BOT_TOKEN")
-bot = Bot(token=API_TOKEN)
-dp = Dispatcher(bot)
+TOKEN = os.getenv("BOT_TOKEN")
 
-logging.basicConfig(level=logging.INFO)
+# Инициализация
+bot = Bot(token=TOKEN)
+storage = MemoryStorage()
+dp = Dispatcher(storage=storage)
+router = Router()
+dp.include_router(router)
 
-goals_kb = ReplyKeyboardMarkup(resize_keyboard=True)
-goals_kb.add(KeyboardButton("🔥 Набор массы"))
-goals_kb.add(KeyboardButton("💪 Сушка"))
-goals_kb.add(KeyboardButton("🧘‍♀️ Здоровье"))
+# Клавиатура
+goals_kb = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="🔥 Набор массы")],
+        [KeyboardButton(text="💪 Сушка")],
+        [KeyboardButton(text="🧘‍♀️ Здоровье")]
+    ],
+    resize_keyboard=True
+)
 
-@dp.message_handler(commands=['start'])
-async def start(message: types.Message):
-    await message.reply("Привет! 👋 Давай подберём тебе спортивное питание. Какая у тебя цель?", reply_markup=goals_kb)
+# Обработка /start
+@router.message(F.text == "/start")
+async def cmd_start(message: types.Message):
+    await message.answer(
+        "Привет! 👋 Давай подберём тебе спортивное питание. Какая у тебя цель?",
+        reply_markup=goals_kb
+    )
 
-@dp.message_handler(lambda message: message.text in ["🔥 Набор массы", "💪 Сушка", "🧘‍♀️ Здоровье"])
-async def choose_goal(message: types.Message):
-    await message.answer(f"Отлично! Ты выбрал цель: *{message.text}*. Скоро мы предложим тебе подходящий бокс 💼", parse_mode="Markdown")
+# Обработка выбора цели
+@router.message(F.text.in_({"🔥 Набор массы", "💪 Сушка", "🧘‍♀️ Здоровье"}))
+async def handle_goal(message: types.Message):
+    await message.answer(f"Отлично! Ты выбрал цель: *{message.text}*. Скоро мы предложим тебе подходящий бокс 💼",
+                         parse_mode="Markdown")
 
-if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+# Запуск бота
+async def main():
+    logging.basicConfig(level=logging.INFO)
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
