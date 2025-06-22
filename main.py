@@ -3,6 +3,8 @@ import logging
 import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.enums import ParseMode
+from aiogram.types import FSInputFile
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import F
 from aiogram import Router
