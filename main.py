@@ -32,8 +32,10 @@ goals_kb = ReplyKeyboardMarkup(
 # Обработка /start
 @router.message(F.text == "/start")
 async def cmd_start(message: types.Message):
-    await message.answer(
-        "Привет! 👋 Давай подберём тебе спортивное питание. Какая у тебя цель?",
+    photo = FSInputFile("startlogo.png")
+    await message.answer_photo(
+        photo=photo,
+        caption="Привет! 👋 Давай подберём тебе спортивное питание. Какая у тебя цель?",
         reply_markup=goals_kb
     )
 
